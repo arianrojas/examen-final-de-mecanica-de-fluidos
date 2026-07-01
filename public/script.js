@@ -263,28 +263,250 @@ function resetToExample() {
     solve();
 }
 
-// Llama al API para realizar los cálculos y actualizar la UI y gráficos
+// ============================================================
+// FLUID SOLVER - Lógica de cálculo 100% en el navegador
+// (No requiere servidor Python ni backend)
+// ============================================================
+function fluidSolverJS(units, H, dx, dy, b, density_type, custom_density) {
+    const g = 9.81;
+    let gamma, rho, fluid_name, density_unit, force_unit, pressure_unit, length_unit, area_unit;
+
+    if (units === 'US') {
+        if (density_type === 'seawater')       { gamma = 64.0;  fluid_name = "Agua Marina"; }
+        else if (density_type === 'freshwater') { gamma = 62.4;  fluid_name = "Agua Dulce"; }
+        else                                    { gamma = parseFloat(custom_density); fluid_name = "Fluido Personalizado"; }
+        rho = null;
+        density_unit = "lbf/ft³"; force_unit = "lbf"; pressure_unit = "lbf/ft²"; length_unit = "ft"; area_unit = "ft²";
+    } else {
+        if (density_type === 'seawater')       { rho = 1025.0; fluid_name = "Agua Marina"; }
+        else if (density_type === 'freshwater') { rho = 1000.0; fluid_name = "Agua Dulce"; }
+        else                                    { rho = parseFloat(custom_density); fluid_name = "Fluido Personalizado"; }
+        gamma = rho * g;
+        density_unit = "kg/m³"; force_unit = "N"; pressure_unit = "Pa (N/m²)"; length_unit = "m"; area_unit = "m²";
+    }
+
+    // Geometría
+    const L = Math.sqrt(dx*dx + dy*dy);
+    const theta_rad = Math.atan2(dy, dx);
+    const theta_deg = theta_rad * 180 / Math.PI;
+    const sin_theta = Math.sin(theta_rad);
+    const cos_theta = Math.cos(theta_rad);
+
+    let submerged_status, is_fully_submerged;
+    let h_A, h_B, h_cg, L_sub, A_sub, y_cg, y_B, y_A, y_cp, d_B, d_A, I_xx_cg;
+
+    if (H >= dy) {
+        submerged_status = "Totalmente Sumergida";
+        is_fully_submerged = true;
+        h_A = H - dy; h_B = H;
+        h_cg = (h_A + h_B) / 2.0;
+        L_sub = L; A_sub = L_sub * b;
+        y_cg = h_cg / sin_theta;
+        y_B = h_B / sin_theta;
+        y_A = h_A / sin_theta;
+        I_xx_cg = (b * Math.pow(L_sub, 3)) / 12.0;
+        y_cp = y_cg + I_xx_cg / (y_cg * A_sub);
+        d_B = y_B - y_cp;
+        d_A = y_cp - y_A;
+    } else {
+        submerged_status = "Parcialmente Sumergida";
+        is_fully_submerged = false;
+        h_B = H; h_cg = H / 2.0;
+        L_sub = H / sin_theta; A_sub = L_sub * b;
+        y_cg = L_sub / 2.0;
+        y_B = L_sub;
+        I_xx_cg = (b * Math.pow(L_sub, 3)) / 12.0;
+        y_cp = y_cg + I_xx_cg / (y_cg * A_sub);
+        d_B = y_B - y_cp;
+        d_A = L - d_B;
+        h_A = 0; y_A = 0;
+    }
+
+    const p_cg = gamma * h_cg;
+    const F_R   = p_cg * A_sub;
+    const F_Rx  = F_R * sin_theta;
+    const F_Ry  = F_R * cos_theta;
+    const P     = (F_R * d_B) / dy;
+    const B_x   = P - F_Rx;
+    const B_y   = F_Ry;
+    const B_mag = Math.sqrt(B_x*B_x + B_y*B_y);
+    const B_angle = B_x !== 0 ? Math.atan2(B_y, B_x) * 180 / Math.PI : 90.0;
+
+    const fmt = (v, dec=2) => v.toLocaleString('es-ES', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+
+    // --- HTML del Procedimiento ---
+    const proc = [];
+
+    proc.push(`
+    <div class="step-card">
+        <div class="step-num">Paso 1</div>
+        <h3>Geometría de la Compuerta</h3>
+        <p>Calculamos los parámetros geométricos de la compuerta a partir de sus dimensiones:</p>
+        <ul>
+            <li><strong>Longitud total ($L$):</strong> $L = \\sqrt{dx^2 + dy^2} = \\sqrt{ ${dx}^2 + ${dy}^2 } = ${fmt(L)}\\text{ ${length_unit}}$</li>
+            <li><strong>Ángulo de inclinación ($\\theta$):</strong> $\\theta = \\arctan\\left(\\frac{dy}{dx}\\right) = \\arctan\\left(\\frac{ ${dy} }{ ${dx} }\\right) = ${fmt(theta_deg)}^\\circ$</li>
+            <li><strong>Ancho ($b$):</strong> $b = ${b}\\text{ ${length_unit}}$</li>
+            <li><strong>Área total de la compuerta ($A$):</strong> $A = L \\cdot b = ${fmt(L)} \\cdot ${b} = ${fmt(L*b)}\\text{ ${area_unit}}$</li>
+        </ul>
+    </div>`);
+
+    if (is_fully_submerged) {
+        proc.push(`
+        <div class="step-card">
+            <div class="step-num">Paso 2</div>
+            <h3>Análisis de Sumergimiento y Centroide</h3>
+            <p>Dado que la profundidad del agua ($H = ${H}\\text{ ${length_unit}}$) es mayor o igual a la altura vertical del apoyo ($dy = ${dy}\\text{ ${length_unit}}$), la compuerta está <strong>totalmente sumergida</strong>.</p>
+            <ul>
+                <li><strong>Profundidad al punto superior A ($h_A$):</strong> $h_A = H - dy = ${H} - ${dy} = ${fmt(h_A)}\\text{ ${length_unit}}$</li>
+                <li><strong>Profundidad al punto inferior B ($h_B$):</strong> $h_B = H = ${fmt(h_B)}\\text{ ${length_unit}}$</li>
+                <li><strong>Profundidad al centroide ($h_{cg}$):</strong> $h_{cg} = \\frac{h_A + h_B}{2} = \\frac{ ${fmt(h_A)} + ${fmt(h_B)} }{2} = ${fmt(h_cg)}\\text{ ${length_unit}}$</li>
+                <li><strong>Área sumergida ($A_{sub}$):</strong> $A_{sub} = A = ${fmt(A_sub)}\\text{ ${area_unit}}$</li>
+            </ul>
+        </div>`);
+    } else {
+        proc.push(`
+        <div class="step-card">
+            <div class="step-num">Paso 2</div>
+            <h3>Análisis de Sumergimiento y Centroide</h3>
+            <p>Dado que la profundidad del agua ($H = ${H}\\text{ ${length_unit}}$) es menor a la altura vertical de la compuerta ($dy = ${dy}\\text{ ${length_unit}}$), la compuerta está <strong>parcialmente sumergida</strong>.</p>
+            <ul>
+                <li><strong>Límite superior sumergido (superficie libre):</strong> $h_{A,sub} = 0\\text{ ${length_unit}}$</li>
+                <li><strong>Profundidad en el fondo ($h_B$):</strong> $h_B = H = ${fmt(h_B)}\\text{ ${length_unit}}$</li>
+                <li><strong>Profundidad al centroide sumergido ($h_{cg}$):</strong> $h_{cg} = \\frac{H}{2} = \\frac{ ${H} }{2} = ${fmt(h_cg)}\\text{ ${length_unit}}$</li>
+                <li><strong>Longitud sumergida ($L_{sub}$):</strong> $L_{sub} = \\frac{H}{\\sin\\theta} = \\frac{ ${H} }{\\sin(${fmt(theta_deg)}^\\circ)} = ${fmt(L_sub)}\\text{ ${length_unit}}$</li>
+                <li><strong>Área sumergida ($A_{sub}$):</strong> $A_{sub} = L_{sub} \\cdot b = ${fmt(L_sub)} \\cdot ${b} = ${fmt(A_sub)}\\text{ ${area_unit}}$</li>
+            </ul>
+        </div>`);
+    }
+
+    const dens_calc = units === 'US'
+        ? `\\gamma = ${fmt(gamma)}\\text{ ${density_unit}}`
+        : `\\gamma = \\rho \\cdot g = ${fmt(rho)}\\text{ kg/m³} \\cdot 9.81\\text{ m/s²} = ${fmt(gamma)}\\text{ N/m³}`;
+
+    proc.push(`
+    <div class="step-card">
+        <div class="step-num">Paso 3</div>
+        <h3>Fuerza Hidrostática sobre la Compuerta</h3>
+        <p>La fuerza ejercida por la presión del fluido sobre la superficie plana se calcula mediante la presión en el centroide multiplicada por el área sumergida:</p>
+        <ul>
+            <li><strong>Peso específico del fluido ($\\gamma$):</strong> $${dens_calc}$</li>
+            <li><strong>Presión en el centroide ($p_{cg}$):</strong> $p_{cg} = \\gamma \\cdot h_{cg} = ${fmt(gamma)} \\cdot ${fmt(h_cg)} = ${fmt(p_cg)}\\text{ ${pressure_unit}}$</li>
+            <li><strong>Fuerza resultante ($F_R$):</strong> $F_R = p_{cg} \\cdot A_{sub} = ${fmt(p_cg)} \\cdot ${fmt(A_sub)} = ${fmt(F_R)}\\text{ ${force_unit}}$</li>
+            <li><strong>Componente Horizontal ($F_{R,x}$):</strong> $F_{R,x} = F_R \\cdot \\sin\\theta = ${fmt(F_R)} \\cdot \\sin(${fmt(theta_deg)}^\\circ) = ${fmt(F_Rx)}\\text{ ${force_unit}}$</li>
+            <li><strong>Componente Vertical ($F_{R,y}$):</strong> $F_{R,y} = F_R \\cdot \\cos\\theta = ${fmt(F_R)} \\cdot \\cos(${fmt(theta_deg)}^\\circ) = ${fmt(F_Ry)}\\text{ ${force_unit}}$ (hacia abajo)</li>
+        </ul>
+    </div>`);
+
+    let cp_formulas;
+    if (is_fully_submerged) {
+        cp_formulas = `
+            <li><strong>Distancia centroidal en el plano ($y_{cg}$):</strong> $y_{cg} = \\frac{h_{cg}}{\\sin\\theta} = \\frac{ ${fmt(h_cg)} }{\\sin(${fmt(theta_deg)}^\\circ)} = ${fmt(y_cg)}\\text{ ${length_unit}}$</li>
+            <li><strong>Momento de Inercia centroidal ($I_{xx,cg}$):</strong> $I_{xx,cg} = \\frac{b \\cdot L^3}{12} = \\frac{ ${b} \\cdot ${fmt(L)}^3 }{12} = ${fmt(I_xx_cg)}\\text{ ${length_unit}}^4$</li>
+            <li><strong>Centro de Presión ($y_{cp}$):</strong> $y_{cp} = y_{cg} + \\frac{I_{xx,cg}}{y_{cg} \\cdot A_{sub}} = ${fmt(y_cg)} + \\frac{ ${fmt(I_xx_cg)} }{ ${fmt(y_cg)} \\cdot ${fmt(A_sub)} } = ${fmt(y_cp)}\\text{ ${length_unit}}$</li>
+            <li><strong>Distancia a la articulación B ($d_B$):</strong> $d_B = y_B - y_{cp} = \\frac{H}{\\sin\\theta} - y_{cp} = ${fmt(y_B)} - ${fmt(y_cp)} = ${fmt(d_B)}\\text{ ${length_unit}}$</li>`;
+    } else {
+        cp_formulas = `
+            <li><strong>Longitud sumergida ($L_{sub}$):</strong> $L_{sub} = ${fmt(L_sub)}\\text{ ${length_unit}}$</li>
+            <li><strong>Momento de Inercia sumergido ($I_{xx,cg}$):</strong> $I_{xx,cg} = \\frac{b \\cdot L_{sub}^3}{12} = \\frac{ ${b} \\cdot ${fmt(L_sub)}^3 }{12} = ${fmt(I_xx_cg)}\\text{ ${length_unit}}^4$</li>
+            <li><strong>Centro de Presión ($y_{cp}$):</strong> $y_{cp} = y_{cg} + \\frac{I_{xx,cg}}{y_{cg} \\cdot A_{sub}} = \\frac{ L_{sub} }{ 2 } + \\frac{ L_{sub} }{ 6 } = \\frac{ 2 }{ 3 }L_{sub} = ${fmt(y_cp)}\\text{ ${length_unit}}$</li>
+            <li><strong>Distancia a la articulación B ($d_B$):</strong> $d_B = L_{sub} - y_{cp} = \\frac{ 1 }{ 3 }L_{sub} = ${fmt(d_B)}\\text{ ${length_unit}}$</li>`;
+    }
+
+    proc.push(`
+    <div class="step-card">
+        <div class="step-num">Paso 4</div>
+        <h3>Punto de Aplicación (Centro de Presión)</h3>
+        <p>La fuerza resultante actúa en el centro de presión, el cual siempre se encuentra a mayor profundidad que el centroide geométrico debido al incremento lineal de la presión hidrostática:</p>
+        <ul>${cp_formulas}</ul>
+    </div>`);
+
+    proc.push(`
+    <div class="step-card">
+        <div class="step-num">Paso 5</div>
+        <h3>Equilibrio de Momentos (Fuerza $P$ en A)</h3>
+        <p>Tomamos momentos alrededor de la articulación B para aislar la fuerza de reacción horizontal $P$ ejercida por la pared lisa en A. Como la pared es vertical y lisa, la fuerza de soporte es puramente horizontal hacia la izquierda:</p>
+        <div class="formula-box">$$\\Sigma M_B = 0 \\implies P \\cdot dy - F_R \\cdot d_B = 0$$</div>
+        <p>Despejando la magnitud $P$:</p>
+        <div class="formula-box">$$P = \\frac{F_R \\cdot d_B}{dy} = \\frac{ ${fmt(F_R)} \\cdot ${fmt(d_B)} }{ ${dy} } = ${fmt(P)}\\text{ ${force_unit}}$$</div>
+        <p>Por acción y reacción, la fuerza ejercida por la compuerta <strong>sobre la pared en A</strong> es horizontal hacia la derecha con magnitud $P = ${fmt(P)}\\text{ ${force_unit}}$.</p>
+    </div>`);
+
+    proc.push(`
+    <div class="step-card">
+        <div class="step-num">Paso 6</div>
+        <h3>Reacciones en la Articulación B</h3>
+        <p>Aplicamos las ecuaciones de equilibrio estático para encontrar las fuerzas horizontal y vertical en la charnela B:</p>
+        <ul>
+            <li><strong>Equilibrio de Fuerzas Horizontales:</strong>
+                <br>$$\\Sigma F_x = 0 \\implies B_x - P + F_{R,x} = 0$$
+                <br>$$B_x = P - F_{R,x} = ${fmt(P)} - ${fmt(F_Rx)} = ${fmt(B_x)}\\text{ ${force_unit}}$$
+                <br><span class="direction-note">(${B_x >= 0 ? '' : 'Dirección corregida: '}actuando hacia la ${B_x >= 0 ? 'derecha' : 'izquierda'})</span>
+            </li>
+            <li><strong>Equilibrio de Fuerzas Verticales:</strong>
+                <br>$$\\Sigma F_y = 0 \\implies B_y - F_{R,y} = 0$$
+                <br>$$B_y = F_{R,y} = ${fmt(B_y)}\\text{ ${force_unit}}$$
+                <br><span class="direction-note">(actuando hacia arriba)</span>
+            </li>
+            <li><strong>Fuerza Total Resultante en B:</strong>
+                <br>$$B = \\sqrt{B_x^2 + B_y^2} = \\sqrt{ ${fmt(B_x)}^2 + ${fmt(B_y)}^2 } = ${fmt(B_mag)}\\text{ ${force_unit}}$$
+                <br>con un ángulo de inclinación de $${fmt(B_angle)}^\\circ$ respecto al eje horizontal.
+            </li>
+        </ul>
+    </div>`);
+
+    const analysis_html = `
+    <div class="analysis-card">
+        <h3>Interpretación Física y Análisis de Sensibilidad</h3>
+        <p>El comportamiento físico del sistema ante los parámetros dados revela lo siguiente:</p>
+        <ol>
+            <li>
+                <strong>Desplazamiento del Centro de Presión:</strong> 
+                El centro de presión (punto donde actúa la fuerza hidrostática total) se encuentra a un nivel 
+                y<sub>cp</sub> = ${fmt(y_cp)} ${length_unit}, que está a una distancia de <strong>${fmt(y_cp - y_cg)} ${length_unit}</strong> por debajo del centroide geométrico de la sección sumergida (y<sub>cg</sub> = ${fmt(y_cg)} ${length_unit}). 
+                Esto ocurre debido a que la presión hidrostática aumenta de forma lineal con la profundidad.
+            </li>
+            <li>
+                <strong>Efecto de la Profundidad del Agua:</strong> 
+                A medida que aumenta la altura de agua H, la fuerza resultante aumenta rápidamente (de forma cuadrática si es parcial, y lineal si ya está totalmente sumergida). 
+                A profundidades muy grandes (H &gt;&gt; dy), la distancia centroidal y<sub>cg</sub> se vuelve muy grande, por lo que la excentricidad (y<sub>cp</sub> - y<sub>cg</sub>) tiende a cero. 
+                Físicamente, a gran profundidad la distribución de presiones deja de ser marcadamente trapezoidal y se vuelve casi rectangular (uniforme), haciendo que la fuerza resultante actúe prácticamente en el baricentro.
+            </li>
+            <li>
+                <strong>Carga sobre el Apoyo A (Pared):</strong> 
+                La reacción de la pared lisa P es de ${fmt(P)} ${force_unit}. Esta fuerza equilibra el momento de rotación provocado por el agua. 
+                Si cambiamos el ángulo de inclinación de la compuerta haciendo que sea más empinada (mayor dy, menor dx), el brazo de palanca de la fuerza de la pared (dy) aumenta, lo cual disminuye la fuerza horizontal necesaria en la pared para equilibrar el mismo momento torsor.
+            </li>
+            <li>
+                <strong>Carga en la Charnela B:</strong>
+                La charnela B experimenta una reacción vertical de ${fmt(B_y)} ${force_unit} y una reacción horizontal de ${fmt(B_x)} ${force_unit}.
+                La fuerza horizontal en la charnela B<sub>x</sub> es de ${fmt(B_x)} ${force_unit}. Si B<sub>x</sub> es positiva, significa que el pasador empuja hacia la derecha para evitar el deslizamiento.
+            </li>
+        </ol>
+    </div>`;
+
+    return {
+        geom: { L, theta_deg, A_total: L * b, A_sub, L_sub, submerged_status, is_fully_submerged },
+        fluid: { fluid_name, gamma, density_unit, force_unit, pressure_unit, length_unit },
+        results: { h_cg, p_cg, F_R, F_Rx, F_Ry, y_cg, y_cp, d_B, d_A, P, B_x, B_y, B_mag, B_angle },
+        procedure_html: proc.join('\n'),
+        analysis_html
+    };
+}
+
+// Calcula y actualiza la UI completamente en el navegador (sin servidor)
 function solve() {
-    fetch('/api/solve', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(state)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Error en el servidor');
-        return response.json();
-    })
-    .then(data => {
+    try {
+        const data = fluidSolverJS(
+            state.units, state.H, state.dx, state.dy, state.b,
+            state.density_type, state.custom_density
+        );
+
         updateResultsPanel(data);
         drawDiagram(data);
-        
-        // Cargar procedimiento y análisis
+
         procedureContent.innerHTML = data.procedure_html;
         analysisContent.innerHTML = data.analysis_html;
 
-        // Renderizar fórmulas de KaTeX si la pestaña actual es la de procedimiento
         const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
         if (activeTab === 'tab-procedure' && window.renderMathInElement) {
             renderMathInElement(procedureContent, {
@@ -294,14 +516,13 @@ function solve() {
                 ]
             });
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error al resolver:', error);
         resFR.textContent = "Error";
         resYCP.textContent = "Error";
         resP.textContent = "Error";
         resB.textContent = "Error";
-    });
+    }
 }
 
 function updateResultsPanel(data) {
