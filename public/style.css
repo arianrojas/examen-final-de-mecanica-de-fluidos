@@ -60,9 +60,9 @@ body {
     top: -200px;
     right: -200px;
     background: radial-gradient(circle,
-            rgba(0, 145, 181, 0.12) 0%,
-            rgba(0, 200, 232, 0.06) 35%,
-            transparent 70%);
+        rgba(0, 145, 181, 0.12) 0%,
+        rgba(0, 200, 232, 0.06) 35%,
+        transparent 70%);
     z-index: 0;
     filter: blur(100px);
     pointer-events: none;
@@ -71,13 +71,8 @@ body {
 }
 
 @keyframes glowDrift {
-    from {
-        transform: translate(0, 0) scale(1);
-    }
-
-    to {
-        transform: translate(-30px, 30px) scale(1.05);
-    }
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(-30px, 30px) scale(1.05); }
 }
 
 /* App Header */
@@ -153,9 +148,7 @@ body {
     border-radius: 20px;
 }
 
-.header-badge i {
-    color: var(--accent-primary);
-}
+.header-badge i { color: var(--accent-primary); }
 
 /* Main Container Layout */
 .main-container {
@@ -366,19 +359,9 @@ select option {
 }
 
 @keyframes shake {
-
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-
-    25% {
-        transform: translateX(-4px);
-    }
-
-    75% {
-        transform: translateX(4px);
-    }
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
 
 /* Inline hint text under slider */
@@ -401,20 +384,11 @@ select option {
     color: var(--accent-error);
 }
 
-.slider-hint i {
-    font-size: 0.68rem;
-}
+.slider-hint i { font-size: 0.68rem; }
 
 @keyframes fadeHintIn {
-    from {
-        opacity: 0;
-        transform: translateY(-3px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-3px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 input[type="range"] {
@@ -487,27 +461,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(30px) scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
+    from { opacity: 0; transform: translateX(30px) scale(0.95); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 
 @keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(30px);
-    }
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(30px); }
 }
 
 .toast-icon {
@@ -517,13 +477,9 @@ input[type="range"]::-moz-range-thumb {
     flex-shrink: 0;
 }
 
-.toast-error .toast-icon {
-    color: var(--accent-error);
-}
+.toast-error .toast-icon { color: var(--accent-error); }
 
-.toast-body {
-    flex: 1;
-}
+.toast-body { flex: 1; }
 
 .toast-title {
     font-family: var(--font-title);
@@ -551,14 +507,10 @@ input[type="range"]::-moz-range-thumb {
     margin-top: -2px;
 }
 
-.toast-close:hover {
-    color: var(--text-primary);
-}
+.toast-close:hover { color: var(--text-primary); }
 
 /* Reset container */
-.reset-container {
-    margin-top: 1.5rem;
-}
+.reset-container { margin-top: 1.5rem; }
 
 .btn {
     width: 100%;
@@ -591,9 +543,9 @@ input[type="range"]::-moz-range-thumb {
 /* Results Card */
 .results-quick-card {
     background: linear-gradient(160deg,
-            rgba(0, 18, 40, 0.7) 0%,
-            rgba(0, 30, 60, 0.55) 50%,
-            rgba(0, 12, 30, 0.7) 100%);
+        rgba(0, 18, 40, 0.7) 0%,
+        rgba(0, 30, 60, 0.55) 50%,
+        rgba(0, 12, 30, 0.7) 100%);
     border-color: rgba(0, 145, 181, 0.18);
 }
 
@@ -620,9 +572,7 @@ input[type="range"]::-moz-range-thumb {
 .result-box::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(0, 200, 232, 0.3), transparent);
 }
@@ -732,15 +682,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Diagram Style */
@@ -753,9 +696,7 @@ input[type="range"]::-moz-range-thumb {
     border-color: rgba(0, 145, 181, 0.15);
 }
 
-.diagram-header {
-    margin-bottom: 0.85rem;
-}
+.diagram-header { margin-bottom: 0.85rem; }
 
 .diagram-header .indicator {
     font-size: 0.78rem;
@@ -765,9 +706,7 @@ input[type="range"]::-moz-range-thumb {
     gap: 0.5rem;
 }
 
-.diagram-header .indicator i {
-    color: var(--accent-primary);
-}
+.diagram-header .indicator i { color: var(--accent-primary); }
 
 .svg-wrapper {
     background: #020610;
@@ -806,9 +745,7 @@ input[type="range"]::-moz-range-thumb {
 .step-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(0, 200, 232, 0.4), transparent);
 }
@@ -962,23 +899,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: rgba(0, 10, 25, 0.4);
-}
-
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(0, 10, 25, 0.4); }
 ::-webkit-scrollbar-thumb {
     background: rgba(0, 145, 181, 0.35);
     border-radius: 3px;
 }
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 200, 232, 0.5);
-}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 200, 232, 0.5); }
 
 /* Responsive Media Queries */
 @media (max-width: 1100px) {
@@ -997,35 +924,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 @media (max-width: 768px) {
-    .app-header {
-        padding: 1rem;
-    }
-
-    .logo h1 {
-        font-size: 1.4rem;
-    }
-
-    .header-badge {
-        display: none;
-    }
-
-    .control-panel {
-        grid-template-columns: 1fr;
-    }
-
-    .tabs-container {
-        flex-direction: column;
-    }
-
-    .tab-btn {
-        width: 100%;
-        padding: 12px;
-    }
-
-    .manual-input-field {
-        width: 68px !important;
-    }
-
+    .app-header { padding: 1rem; }
+    .logo h1 { font-size: 1.4rem; }
+    .header-badge { display: none; }
+    .control-panel { grid-template-columns: 1fr; }
+    .tabs-container { flex-direction: column; }
+    .tab-btn { width: 100%; padding: 12px; }
+    .manual-input-field { width: 68px !important; }
     .validation-toast {
         right: 0.75rem;
         left: 0.75rem;
