@@ -790,7 +790,7 @@ function ensureWarningBox() {
         warningBox.setAttribute('role', 'alert');
         warningBox.hidden = true;
 
-        const target = document.querySelector('.controls-panel') || document.body;
+        const target = document.querySelector('.control-panel') || document.querySelector('.controls-panel') || document.body;
         target.prepend(warningBox);
     }
 
