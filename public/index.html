@@ -1,36 +1,42 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MecaFluids - Solucionador de Compuertas Planas</title>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- KaTeX for rendering LaTeX math formulas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+        onload="renderMathInElement(document.body);"></script>
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="glow-bg"></div>
-    
+
     <header class="app-header">
         <div class="header-content">
             <div class="logo">
                 <i class="fa-solid fa-water-laste"></i>
                 <h1>Meca<span>Fluids</span></h1>
             </div>
-            <p class="subtitle"><i class="fa-solid fa-calculator"></i> Solucionador Inteligente de Compuertas Planas Sumergidas</p>
+            <p class="subtitle"><i class="fa-solid fa-calculator"></i> Solucionador Inteligente de Compuertas Planas
+                Sumergidas</p>
         </div>
     </header>
 
@@ -39,7 +45,7 @@
         <section class="control-panel">
             <div class="glass-card">
                 <h2><i class="fa-solid fa-sliders"></i> Parámetros de Entrada</h2>
-                
+
                 <!-- Selector de Unidades -->
                 <div class="input-group">
                     <label class="section-label">Sistema de Unidades</label>
@@ -62,7 +68,7 @@
                 <!-- Densidad Personalizada (Oculta por defecto) -->
                 <div class="input-group hidden" id="custom-density-container">
                     <label for="custom-density-input">
-                        <i class="fa-solid fa-weight-hanging"></i> 
+                        <i class="fa-solid fa-weight-hanging"></i>
                         Densidad / Peso Esp. (<span class="density-unit-label">lbf/ft³</span>)
                     </label>
                     <input type="number" id="custom-density-input" step="0.1" value="64.0">
@@ -91,7 +97,7 @@
                     <!-- dy: Proyección Vertical de la Compuerta -->
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span>Altura del Apoyo Vertical ($dy$)</span>
+                            <span>Altura del Apoyo Vertical (dy)</span>
                             <span class="value-display" id="val-dy-display">6.0 ft</span>
                         </div>
                         <input type="range" id="param-dy" min="1.0" max="20.0" step="0.5" value="6.0">
@@ -100,7 +106,7 @@
                     <!-- b: Ancho de la compuerta -->
                     <div class="slider-group">
                         <div class="slider-header">
-                            <span>Ancho de la Compuerta ($b$)</span>
+                            <span>Ancho de la Compuerta (b)</span>
                             <span class="value-display" id="val-b-display">5.0 ft</span>
                         </div>
                         <input type="range" id="param-b" min="1.0" max="20.0" step="0.5" value="5.0">
@@ -119,19 +125,19 @@
                 <h2><i class="fa-solid fa-chart-simple"></i> Resultados Clave</h2>
                 <div class="results-grid">
                     <div class="result-box">
-                        <span class="result-title">Fuerza Resultante ($F_R$)</span>
+                        <span class="result-title">Fuerza Resultante (F_R)</span>
                         <span class="result-value" id="res-FR">-</span>
                     </div>
                     <div class="result-box">
-                        <span class="result-title">Centro Presión ($y_{cp}$)</span>
+                        <span class="result-title">Centro Presión (y_cp)</span>
                         <span class="result-value" id="res-ycp">-</span>
                     </div>
                     <div class="result-box">
-                        <span class="result-title">Fuerza en Apoyo A ($P$)</span>
+                        <span class="result-title">Fuerza en Apoyo A (P)</span>
                         <span class="result-value" id="res-P">-</span>
                     </div>
                     <div class="result-box">
-                        <span class="result-title">Reacción en Bisagra ($B$)</span>
+                        <span class="result-title">Reacción en Bisagra (B)</span>
                         <span class="result-value" id="res-B">-</span>
                     </div>
                 </div>
@@ -162,7 +168,9 @@
                 <div class="tab-pane active" id="tab-diagram">
                     <div class="glass-card diagram-card">
                         <div class="diagram-header">
-                            <span class="indicator"><i class="fa-solid fa-circle-info"></i> El diagrama escala dinámicamente con las entradas. Los vectores y prismas representan magnitudes físicas reales.</span>
+                            <span class="indicator"><i class="fa-solid fa-circle-info"></i> El diagrama escala
+                                dinámicamente con las entradas. Los vectores y prismas representan magnitudes físicas
+                                reales.</span>
                         </div>
                         <div class="svg-wrapper">
                             <svg id="fluid-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
@@ -170,45 +178,51 @@
                                 <defs>
                                     <!-- Gradiente para el Agua -->
                                     <linearGradient id="water-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                        <stop offset="0%" stop-color="#00bcd4" stop-opacity="0.6"/>
-                                        <stop offset="100%" stop-color="#006064" stop-opacity="0.8"/>
+                                        <stop offset="0%" stop-color="#00bcd4" stop-opacity="0.6" />
+                                        <stop offset="100%" stop-color="#006064" stop-opacity="0.8" />
                                     </linearGradient>
                                     <!-- Gradiente para el Prisma de Presión -->
                                     <linearGradient id="pressure-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#ff9800" stop-opacity="0.3"/>
-                                        <stop offset="100%" stop-color="#e91e63" stop-opacity="0.5"/>
+                                        <stop offset="0%" stop-color="#ff9800" stop-opacity="0.3" />
+                                        <stop offset="100%" stop-color="#e91e63" stop-opacity="0.5" />
                                     </linearGradient>
                                     <!-- Gradiente Metalizado para la Compuerta -->
                                     <linearGradient id="gate-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" stop-color="#eceff1"/>
-                                        <stop offset="50%" stop-color="#b0bec5"/>
-                                        <stop offset="100%" stop-color="#37474f"/>
+                                        <stop offset="0%" stop-color="#eceff1" />
+                                        <stop offset="50%" stop-color="#b0bec5" />
+                                        <stop offset="100%" stop-color="#37474f" />
                                     </linearGradient>
                                     <!-- Patrón de Cuadrícula Técnico -->
                                     <pattern id="grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1"/>
+                                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255, 255, 255, 0.05)"
+                                            stroke-width="1" />
                                     </pattern>
                                     <!-- Marcador de Flechas para Fuerzas -->
-                                    <marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <marker id="arrow-red" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6"
+                                        markerHeight="6" orient="auto-start-reverse">
                                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#f44336" />
                                     </marker>
-                                    <marker id="arrow-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <marker id="arrow-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6"
+                                        markerHeight="6" orient="auto-start-reverse">
                                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#4caf50" />
                                     </marker>
-                                    <marker id="arrow-purple" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <marker id="arrow-purple" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6"
+                                        markerHeight="6" orient="auto-start-reverse">
                                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#e040fb" />
                                     </marker>
-                                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                    <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6"
+                                        markerHeight="6" orient="auto-start-reverse">
                                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#2196f3" />
                                     </marker>
-                                    <marker id="arrow-pressure" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                    <marker id="arrow-pressure" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4"
+                                        markerHeight="4" orient="auto-start-reverse">
                                         <path d="M 0 2 L 8 5 L 0 8 z" fill="rgba(255, 255, 255, 0.6)" />
                                     </marker>
                                 </defs>
 
                                 <!-- Capa de Cuadrícula de Fondo -->
                                 <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-                                
+
                                 <!-- Contenedor de elementos dinámicos que se dibujarán por JavaScript -->
                                 <g id="dynamic-group"></g>
                             </svg>
@@ -220,7 +234,8 @@
                 <div class="tab-pane" id="tab-procedure">
                     <div id="procedure-content" class="math-container">
                         <!-- Cargado dinámicamente -->
-                        <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando procedimiento matemático...</div>
+                        <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando
+                            procedimiento matemático...</div>
                     </div>
                 </div>
 
@@ -228,7 +243,8 @@
                 <div class="tab-pane" id="tab-analysis">
                     <div id="analysis-content">
                         <!-- Cargado dinámicamente -->
-                        <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando análisis físico de resultados...</div>
+                        <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i> Cargando análisis
+                            físico de resultados...</div>
                     </div>
                 </div>
             </div>
@@ -242,4 +258,5 @@
     <!-- Custom JS -->
     <script src="script.js"></script>
 </body>
+
 </html>
